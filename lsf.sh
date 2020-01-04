@@ -2,14 +2,15 @@
 binname=$1
 runlist=$2
 des_dir=$3
-nrun=$4
-run_first=$5
-maxentry=$6
-firstentry=$7
+itel=$4
+nrun=$5
+run_first=$6
+maxentry=$7
+firstentry=$8
 #nlsf=20
 if [[ -z $binname ]];then
-   read -n1 -p "use <source lsf.sh binname runlist eos_dir nrun run_first maxentry firstentry>,  Press any key to continue..."
-   read -n1 -p "use <source lsf.sh binname runlist eos_dir nrun run_first maxentry firstentry>,  Press any key to continue..."
+   read -n1 -p "use <source lsf.sh binname runlist eos_dir itel nrun run_first maxentry firstentry>,  Press any key to continue..."
+   read -n1 -p "use <source lsf.sh binname runlist eos_dir itel nrun run_first maxentry firstentry>,  Press any key to continue..."
 fi
 if [[ -z $nrun ]]; then
    nrun=`cat $runlist | wc -l`
@@ -29,7 +30,7 @@ fi
 #step=$((nrun/nlsf))
 step=0
 if [ $step -eq 0 ]; then
-   step=$(((nrun-run_first)/600))
+   step=$(((nrun-run_first)/100))
 fi
 if [ $step -eq 0 ]; then
    step=1
@@ -42,7 +43,7 @@ fi
 queue="ams1nd"
 jobindex=0
 name0="sh"
-lsf_dir="lsf"
+lsf_dir="lsf${itel}"
 for (( i=$run_first; i<nrun; i=i+step ))
 do
    runlast=$((i+step-1))
@@ -77,7 +78,7 @@ do
      echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $RUN.$name0
      echo $'\n' >> $RUN.$name0
      echo "#execute the monitor program" >> $RUN.$name0
-     echo "time /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/$binname $runlist /eos/user/h/hliu/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+     echo "time /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/$binname $runlist root://eos01.ihep.ac.cn//eos/user/h/hliu/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
      echo $'\n' >> $RUN.$name0
 
      echo "ls -ltrh" >> $RUN.$name0

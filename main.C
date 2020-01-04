@@ -32,7 +32,7 @@ int main(int argc,char* argv[]){
 
    char firstline[300];
    char lastline[300];
-   int nline=CommonTools::GetFirstLastLine(Form("/scratchfs/ybj/lix/Laser/%s",runlist),firstline,lastline);
+   int nline=CommonTools::GetFirstLastLine(Form("/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/%s",runlist),firstline,lastline);
    int timefirst=CommonTools::GetTimeFromFileName(firstline)-600;
    int timelast=CommonTools::GetTimeFromFileName(lastline)+600;
    //timefirst=1573061985;
@@ -58,9 +58,11 @@ int main(int argc,char* argv[]){
 
    WFTelescopeArray::jdebug=0;
    WFTelescopeArray::DoSim=true;
-   WFTelescopeArray::GetHead(Form("/scratchfs/ybj/lix/WFCTA/default.inp"));
+   WFTelescopeArray::GetHead(Form("/afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/default.inp"));
    WFCTAEvent::npetrigger=50;
    WFCTAEvent::nfiretrigger=3;
+
+   RotateDB::jdebug=0;
    RotateDB::ntotmin=5;
    RotateDB::nsidemin=2;
 
@@ -120,7 +122,7 @@ int main(int argc,char* argv[]){
 
    const double pi=3.1415926;
    LHChain chain;
-   chain.AddFromFile(Form("/scratchfs/ybj/lix/Laser/%s",runlist),first,last);
+   chain.AddFromFile(Form("/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/%s",runlist),first,last);
    if(maxevent<=0) maxevent=chain.GetEntries();
    maxevent=TMath::Min(maxevent,(int)chain.GetEntries());
 
@@ -134,56 +136,37 @@ int main(int argc,char* argv[]){
 
       //if(!pev->PassClean(pev->iTel,3)) continue;
       //if(pev->IsLed(900)) continue;
-      if(fabs(pev->rabbittime*20-990022580)>16000) continue;
+      //if(fabs(pev->rabbittime*20-990022580)>16000) continue;
+      if(fabs(pev->rabbittime*20-990016000)>1600*10) continue;
 
-      //printf("LaserEvent: entry=%d time=%d\n",ientry,pev->rabbitTime);
+      printf("LaserEvent: entry=%d time=%d\n",ientry,pev->rabbitTime);
 
-      bool DoLoad=pr->GetEleAzi(pev->rabbitTime,2);
-      if(!DoLoad) continue;
+      int DoLoad=pr->GetEleAzi(pev->rabbitTime,2,pev->iTel);
+      if(DoLoad<0) continue;
 
-      printf("Rotate Log: time=%d ele=%lf azi=%lf\n",pev->rabbitTime,pr->varinfo[9],pr->varinfo[10]);
+      printf("Rotate Log: time=%d ele=%lf azi=%lf\n",pev->rabbitTime,pr->GetElevation(),pr->GetAzimuth());
 
-      bool laseropen=pr->allswith[0];
+      bool laseropen=pr->GetLaserSwith();
       if(!laseropen) continue;
-      double height=pr->varinfo[8];
+      double height=pr->GetHeight();
       if(height<200) continue;
 
-      double elevation=pr->varinfo[9];
-      double azimuth=pr->varinfo[10];
+      double elevation=pr->GetElevation();
+      double azimuth=pr->GetAzimuth();
 
       int azii1=-1,teli1=-1;
-      if(process1){
-         int itel=pev->iTel-1;
-         for(int jj=0;jj<4;jj++){
-            if(jj==0&&(itel!=4&&itel!=5)) continue;
-            if(jj==1&&(itel!=3&&itel!=4)) continue;
-            if(jj==2&&(itel!=2&&itel!=3)) continue;
-            if(jj==3&&(itel!=0&&itel!=1&&itel!=2)) continue;
-            if(itel<0||itel>ntel-1) continue;
-            if(fabs(elevation-AngleList1[jj][0])>0.02) continue;
-            if(fabs(azimuth-AngleList1[jj][1])>0.02) continue;
-            azii1=jj;
-            teli1=itel;
-            break;
-         }
-         //printf("itel=%d iele=%d\n",teli,elei);
+      if(process1&&(DoLoad/10)==1){
+         teli1=pev->iTel-1;
+         azii1=(DoLoad%10);
       }
       int elei2=-1,teli2=-1;
-      if(process2){
-         int itel=pev->iTel-1;
-         for(int jj=0;jj<6;jj++){
-            if(itel<0||itel>ntel-1) continue;
-            if(fabs(elevation-AngleList2[itel][jj][0])>0.02) continue;
-            if(fabs(azimuth-AngleList2[itel][jj][1])>0.02) continue;
-            elei2=jj;
-            teli2=itel;
-            break;
-         }
-         //printf("itel=%d iele=%d\n",teli,elei);
+      if(process2&&(DoLoad/10)==2){
+         teli2=pev->iTel-1;
+         elei2=(DoLoad%10);
       }
 
       pev->DoFit(0,3);
-      TH1F* hist=pev->GetDistribution(true,0,11,false,false);
+      TH1F* hist=pev->GetDistribution(true,0,3,false,false);
       if(!hist) continue;
       //printf("hist=%p\n",hist);
 

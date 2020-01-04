@@ -4,7 +4,7 @@
    gStyle->SetMarkerSize(1.5);
    gStyle->SetLineWidth(3);
 
-   int iTel=4;
+   int iTel=1;
 
    double xmin=1.0e12,xmax=-1.0e12,ymin=1.0e12,ymax=-1.0e12;
    //double xmin=1574510000,xmax=1574550000,ymin=0.1,ymax=3.0e6;
@@ -16,12 +16,12 @@
    //pad1->Draw();
    //pad1->SetLogy(1);
    //pad1->cd();
-   TFile* fin=TFile::Open(Form("/eos/user/h/hliu/LaserEvent/tel%d_v2.root",iTel));
+   TFile* fin=TFile::Open(Form("/eos/user/h/hliu/LaserEvent/tel%d_v3.root",iTel));
    TGraphErrors* gr[6]={0,0,0,0,0,0};
    TH1F* hdis[6]={0,0,0,0,0,0};
    double hrange[6][2]={{8.0e5,2.5e6},{2.0e5,1.4e6},{1.0e4,1.0e6},{1.0e4,8.0e5},{1.0e4,8.0e5},{1.0e4,8.0e5}};
    int color[]={1,2,3,4,6,9};
-   int cindex=5;
+   int cindex=1;
    int nplot=0;
    for(int iele=0;iele<6;iele++){
       if(cindex>=0&&iele!=cindex) continue;

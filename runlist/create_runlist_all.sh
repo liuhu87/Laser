@@ -24,7 +24,7 @@ do
    continue
    fi
 
-echo $dir/$ith/$ith2 >>all_tel${itel}.txt
+echo "root://eos01.ihep.ac.cn/"$dir/$ith/$ith2 >>all_tel${itel}_v3.txt
 done
 
 done
