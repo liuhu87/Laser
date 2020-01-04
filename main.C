@@ -29,10 +29,11 @@ int main(int argc,char* argv[]){
 
    char* runlist=argv[1];
    char* outname=argv[2];
+   char cdir[200]="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent";
 
    char firstline[300];
    char lastline[300];
-   int nline=CommonTools::GetFirstLastLine(Form("/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/%s",runlist),firstline,lastline);
+   int nline=CommonTools::GetFirstLastLine(Form("%s/%s",cdir,runlist),firstline,lastline);
    int timefirst=CommonTools::GetTimeFromFileName(firstline)-600;
    int timelast=CommonTools::GetTimeFromFileName(lastline)+600;
    //timefirst=1573061985;
@@ -122,7 +123,7 @@ int main(int argc,char* argv[]){
 
    const double pi=3.1415926;
    LHChain chain;
-   chain.AddFromFile(Form("/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/%s",runlist),first,last);
+   chain.AddFromFile(Form("%s/%s",cdir,runlist),first,last);
    if(maxevent<=0) maxevent=chain.GetEntries();
    maxevent=TMath::Min(maxevent,(int)chain.GetEntries());
 
