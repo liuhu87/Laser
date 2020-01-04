@@ -7,6 +7,8 @@ nrun=$5
 run_first=$6
 maxentry=$7
 firstentry=$8
+dir0="/eos/user/h/hliu"
+cdir="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent"
 #nlsf=20
 if [[ -z $binname ]];then
    read -n1 -p "use <source lsf.sh binname runlist eos_dir itel nrun run_first maxentry firstentry>,  Press any key to continue..."
@@ -36,8 +38,8 @@ if [ $step -eq 0 ]; then
    step=1
 fi
 
-if [ ! -d /eos/user/h/hliu/$des_dir ];then
-   mkdir /eos/user/h/hliu/$des_dir
+if [ ! -d $dir0/$des_dir ];then
+   mkdir $dir0/$des_dir
 fi
 
 queue="ams1nd"
@@ -54,9 +56,9 @@ do
    #hostname=`cat /afs/cern.ch/work/h/huliu/Documents/test/bash/serverlist.txt | head -$((jobindex+1)) | tail -1`
 
      cd ${lsf_dir}
-     RUN=$i
+     RUN=$jobindex
 
-     if [[ -f /eos/user/h/hliu/$des_dir/${RUN}.root ]];then
+     if [[ -f $dir0/$des_dir/${RUN}.root ]];then
         cd ..
         continue
      fi
@@ -78,7 +80,7 @@ do
      echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $RUN.$name0
      echo $'\n' >> $RUN.$name0
      echo "#execute the monitor program" >> $RUN.$name0
-     echo "time /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/$binname $runlist root://eos01.ihep.ac.cn//eos/user/h/hliu/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+     echo "time $cdir/$binname $runlist root://eos01.ihep.ac.cn/$dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
      echo $'\n' >> $RUN.$name0
 
      echo "ls -ltrh" >> $RUN.$name0
@@ -125,5 +127,5 @@ done
 #cd ~/Documents/plot
 
 cd ${lsf_dir}
-hep_sub -p virtual -g lhaaso -dir /eos/user/h/hliu/jobout -o /eos/user/h/hliu/jobout/%{ProcId}.out -e /eos/user/h/hliu/jobout/%{ProcId}.err job.sh.%{ProcId} -n ${jobindex}
+hep_sub -p virtual -g lhaaso -dir $dir0/jobout -o $dir0/jobout/%{ProcId}.out -e $dir0/jobout/%{ProcId}.err job.sh.%{ProcId} -n ${jobindex}
 cd ..
