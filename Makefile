@@ -1,5 +1,5 @@
 NAME := test
-TARGET :=main_lum
+TARGET :=main_kc
 
 INCDIR := include
 OBJDIR := obj
