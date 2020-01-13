@@ -1,4 +1,5 @@
 NAME := test
+TARGET :=main_lum
 
 INCDIR := include
 OBJDIR := obj
@@ -6,7 +7,7 @@ OBJDIR := obj
 ARCH :=`root-config --arch`
 
 HEADERS  := 
-SOURCES  :=  main.C
+SOURCES  :=  $(TARGET).C
 OBJS     :=  $(OBJDIR)/main.o
 
 DEFINES  := -I. -I$(INCDIR) -I$(OBJDIR) -I`root-config --cflags`
@@ -26,7 +27,7 @@ LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/lib.so
 $(NAME): $(OBJS) 
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) 
 
-$(OBJDIR)/main.o: main.C
+$(OBJDIR)/main.o: $(TARGET).C
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $^ -o $@
 
 $(OBJDIR)/%.o: $(OBJDIR)/%.C
