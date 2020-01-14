@@ -55,9 +55,6 @@ int main(int argc,char* argv[]){
    int last=argc>6?atoi(argv[6]):(nline-1);
    int maxevent=argc>7?atoi(argv[8]):-1;
    int firstevent=argc>8?atoi(argv[8]):0;
-   const int ntel=6;
-   bool process1=true;
-   bool process2=true;
 
    const double pi=3.1415926;
    LHChain chain;
@@ -70,17 +67,30 @@ int main(int argc,char* argv[]){
    if(maxevent<=0) maxevent=chain.GetEntries();
    maxevent=TMath::Min(maxevent,(int)chain.GetEntries());
 
-   TFile* fout=TFile::Open(outname,"RECREATE");
+   TFile* fout=0;
+   if(strstr(outname,".root")) fout=TFile::Open(outname,"RECREATE");
 
    //TH1::SetDefaultSumw2();
-   for(int ientry=firstevent;ientry<maxevent;ientry++){
-      WFCTAEvent* pev=chain.GetEvent(ientry);
-      if(pev->iEvent!=ievent||pev->rabbitTime!=itime) continue;
+   if(ievent>=0&&itime>1300000000){
+      WFCTAEvent* pev=chain.GetEvent(itime,ievent);
+      if(pev){
+         TCanvas* cc=new TCanvas();
+         pev->Draw(3,"colz",false);
+         cc->Print(Form("%s(",outname),"pdf");
+         cc=new TCanvas();
+         cc->Print(Form("%s)",outname),"pdf");
+      }
+   }
+   else{
+      for(int ientry=firstevent;ientry<maxevent;ientry++){
+         WFCTAEvent* pev=chain.GetEvent(ientry);
+         //if(pev->iEvent!=ievent||pev->rabbitTime!=itime) continue;
 
-      if((ientry%1000)==0) printf("entry=%d of %d iTel=%d event=%d time={%d,%lf}\n",ientry,maxevent,pev->iTel,pev->iEvent,pev->rabbitTime,pev->rabbittime);
+         if((ientry%1000)==0) printf("entry=%d of %d iTel=%d event=%d time={%d,%lf}\n",ientry,maxevent,pev->iTel,pev->iEvent,pev->rabbitTime,pev->rabbittime);
 
-      pev->DoFit(0,3);
-      printf("iEvent=%d Time=%d+%.10lf kk={%.2lf+-%.2lf} cc={%.2lf+-%.2lf}\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*20*1.0e-9,pev->minimizer->X()[3]/PI*180,pev->minimizer->Errors()[3]/PI*180,pev->minimizer->X()[2]/PI*180,pev->minimizer->Errors()[2]/PI*180);
+         pev->DoFit(0,3);
+         printf("iEvent=%d Time=%d+%.10lf kk={%.2lf+-%.2lf} cc={%.2lf+-%.2lf}\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*20*1.0e-9,pev->minimizer->X()[3]/PI*180,pev->minimizer->Errors()[3]/PI*180,pev->minimizer->X()[2]/PI*180,pev->minimizer->Errors()[2]/PI*180);
+      }
    }
 
    return 0;
