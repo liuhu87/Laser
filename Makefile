@@ -11,6 +11,7 @@ SOURCES  :=  $(TARGET).C
 OBJS     :=  $(OBJDIR)/main.o
 
 DEFINES  := -I. -I$(INCDIR) -I$(OBJDIR) -I`root-config --cflags`
+#DEFINES  += -I/scratchfs/ybj/lix/WFCTA/include
 DEFINES  += -I/afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/include
 
 #CXXFLAGS += -D__DST_HE_12__

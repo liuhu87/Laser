@@ -110,16 +110,19 @@ int main(int argc,char* argv[]){
 
          if((ientry%1000)==0) printf("entry=%d of %d iTel=%d event=%d time={%d,%lf}\n",ientry,maxevent,pev->iTel,pev->iEvent,pev->rabbitTime,pev->rabbittime);
 
-         int Li=pr->GetLi(pev->rabbittime);
-         if(Li<0) continue;
+         if(!pr->LaserIsFine(pev)) continue;
+
+         //int Liindex=pr->GetLi((double)pev->rabbittime);
+         //if(Liindex<0) continue;
+         //int Li=RotateDB::rotindex[Liindex];
 
          printf("LaserEvent: entry=%d time=%d\n",ientry,pev->rabbitTime);
 
-         int DoLoad=pr->GetEleAzi(pev->rabbitTime,Li,pev->iTel);
-         if(DoLoad<0) continue;
+         //int DoLoad=pr->GetEleAzi(pev->rabbitTime,Li,pev->iTel);
+         //if(DoLoad<0) continue;
 
-         pev->DoFit(0,3);
-         if(!pr->IsFineImage(pev,Li,DoLoad)) continue;
+         //pev->DoFit(0,3);
+         //if(!pr->IsFineImage(pev,Li,DoLoad)) continue;
 
          TCanvas* cc=new TCanvas();
          pev->Draw(3,"colz",false);
