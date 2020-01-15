@@ -29,7 +29,21 @@ int main(int argc,char* argv[]){
 
    char* runlist=argv[1];
    char* outname=argv[2];
-   char cdir[200]="/scratchfs/ybj/lix/Laser";
+   char filename[100];
+   char OutType[20];
+   int length=strlen(outname);
+   int iloc=-1;
+   for(int ii=length-1;ii>=0;ii--){
+      if(outname[ii]=='.'){ iloc=ii; break;}
+   }
+   for(int ii=0;ii<length;ii++){
+      if(ii<iloc) filename[ii]=outname[ii];
+      else if(ii==iloc) filename[ii]='\0';
+      else OutType[ii-iloc-1]=outname[ii];
+   }
+   OutType[length-1-iloc]='\0';
+   //printf("Outname=%s (%s.%s)\n",outname,filename,OutType);
+   char cdir[200]="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent";
 
    char firstline[300];
    char lastline[300];
@@ -53,7 +67,7 @@ int main(int argc,char* argv[]){
    int itime=atoi(argv[4]);
    int first=argc>5?atoi(argv[5]):0;
    int last=argc>6?atoi(argv[6]):(nline-1);
-   int maxevent=argc>7?atoi(argv[8]):-1;
+   int maxevent=argc>7?atoi(argv[7]):-1;
    int firstevent=argc>8?atoi(argv[8]):0;
 
    const double pi=3.1415926;
@@ -67,18 +81,26 @@ int main(int argc,char* argv[]){
    if(maxevent<=0) maxevent=chain.GetEntries();
    maxevent=TMath::Min(maxevent,(int)chain.GetEntries());
 
+   RotateDB::jdebug=0;
+   RotateDB::ntotmin=5;
+   RotateDB::nsidemin=2;
+
+   RotateDB* pr=RotateDB::GetHead();
+
    TFile* fout=0;
-   if(strstr(outname,".root")) fout=TFile::Open(outname,"RECREATE");
+   if(strstr(OutType,"root")) fout=TFile::Open(outname,"RECREATE");
 
    //TH1::SetDefaultSumw2();
+   int nplot=0;
    if(ievent>=0&&itime>1300000000){
       WFCTAEvent* pev=chain.GetEvent(itime,ievent);
       if(pev){
          TCanvas* cc=new TCanvas();
          pev->Draw(3,"colz",false);
-         cc->Print(Form("%s(",outname),"pdf");
-         cc=new TCanvas();
-         cc->Print(Form("%s)",outname),"pdf");
+         cc->Print(Form("%s",outname),OutType);
+         nplot++;
+         //cc=new TCanvas();
+         //cc->Print(Form("%s)",outname),OutType);
       }
    }
    else{
@@ -88,9 +110,26 @@ int main(int argc,char* argv[]){
 
          if((ientry%1000)==0) printf("entry=%d of %d iTel=%d event=%d time={%d,%lf}\n",ientry,maxevent,pev->iTel,pev->iEvent,pev->rabbitTime,pev->rabbittime);
 
+         int Li=pr->GetLi(pev->rabbittime);
+         if(Li<0) continue;
+
+         printf("LaserEvent: entry=%d time=%d\n",ientry,pev->rabbitTime);
+
+         int DoLoad=pr->GetEleAzi(pev->rabbitTime,Li,pev->iTel);
+         if(DoLoad<0) continue;
+
          pev->DoFit(0,3);
-         printf("iEvent=%d Time=%d+%.10lf kk={%.2lf+-%.2lf} cc={%.2lf+-%.2lf}\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*20*1.0e-9,pev->minimizer->X()[3]/PI*180,pev->minimizer->Errors()[3]/PI*180,pev->minimizer->X()[2]/PI*180,pev->minimizer->Errors()[2]/PI*180);
+         if(!pr->IsFineImage(pev,Li,DoLoad)) continue;
+
+         TCanvas* cc=new TCanvas();
+         pev->Draw(3,"colz",false);
+         cc->Print(Form("%s%s",outname,nplot==0?"(":""),OutType);
+         nplot++;
+         //pev->DoFit(0,3);
+         //printf("iEvent=%d Time=%d+%.10lf kk={%.2lf+-%.2lf} cc={%.2lf+-%.2lf}\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*20*1.0e-9,pev->minimizer->X()[3]/PI*180,pev->minimizer->Errors()[3]/PI*180,pev->minimizer->X()[2]/PI*180,pev->minimizer->Errors()[2]/PI*180);
       }
+      TCanvas* cc=new TCanvas();
+      cc->Print(Form("%s)",outname),OutType);
    }
 
    return 0;

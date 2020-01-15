@@ -63,67 +63,54 @@ int main(int argc,char* argv[]){
    WFCTAEvent::npetrigger=50;
    WFCTAEvent::nfiretrigger=3;
 
+   // create histogram to save results
+   TH2F* hkk1[ntel][4];
+   TH2F* hcc1[ntel][4];
+   for(int itel=0;itel<ntel;itel++){
+      for(int iazi=0;iazi<4;iazi++){
+         hkk1[itel][iazi]=0;
+         hcc1[itel][iazi]=0;
+         if(!process1) continue;
+         if(iazi==0&&(itel!=4&&itel!=5)) continue;
+         if(iazi==1&&(itel!=3&&itel!=4)) continue;
+         if(iazi==2&&(itel!=2&&itel!=3)) continue;
+         if(iazi==3&&(itel!=0&&itel!=1&&itel!=2)) continue;
+         hkk1[itel][iazi]=new TH2F(Form("Tel%d_Azi%d_kk",itel+1,iazi+1),";Time;kk [degree]",nxbin,xbins,360,0,180);
+         hcc1[itel][iazi]=new TH2F(Form("Tel%d_Azi%d_cc",itel+1,iazi+1),";Time;cc [degree]",nxbin,xbins,48,-12,12);
+      }
+   }
+
+   const int nrot=2;
+   int rotindex[nrot]={2,3};
+   double rottime[nrot]={990016000,990845000};
+   TH2F* hkk2[nrot][ntel][6];
+   TH2F* hcc2[nrot][ntel][6];
+   for(int irot=0;irot<nrot;irot++){
+      for(int itel=0;itel<ntel;itel++){
+         for(int iele=0;iele<6;iele++){
+            hkk2[irot][itel][iele]=0;
+            hcc2[irot][itel][iele]=0;
+            if(!process2) continue;
+            hkk2[irot][itel][iele]=new TH2F(Form("Rot%d_Tel%d_Ele%d_kk",rotindex[irot],itel+1,iele+1),";Time;kk [degree]",nxbin,xbins,360,0,180);
+            hcc2[irot][itel][iele]=new TH2F(Form("Rot%d_Tel%d_Ele%d_cc",rotindex[irot],itel+1,iele+1),";Time;cc [degree]",nxbin,xbins,48,-12,12);
+         }
+      }
+   }
+
    RotateDB::jdebug=0;
    RotateDB::ntotmin=5;
    RotateDB::nsidemin=2;
 
    RotateDB* pr=RotateDB::GetHead();
 
-   double AngleList1[4][2];
-   AngleList1[0][0]=40; AngleList1[0][1]=42;
-   AngleList1[1][0]=40; AngleList1[1][1]=29;
-   AngleList1[2][0]=40; AngleList1[2][1]=19;
-   AngleList1[3][0]=40; AngleList1[3][1]=4;
-
-   //T1-6
-   double elelist[6]={10,20,30,40,50,55};
-   double azilist[ntel][6]={{23.7,19,15,10,1,-5},
-                         {23.7,17,11,0,-12,-18},
-                         {24.5,22,19,15,10,3},
-                         {27,26,26,26,25,24},
-                         {30.5,33,35,38,42,44},
-                         {32,38,43,47,54,61}
-                        };
-   double AngleList2[ntel][6][2];
-   for(int itel=0;itel<ntel;itel++){
-      for(int iele=0;iele<6;iele++){
-         AngleList2[itel][iele][0]=elelist[iele];
-         AngleList2[itel][iele][1]=azilist[itel][iele];
-      }
-   }
-
-   //histogram
-   TH2F* hlist1[ntel][4];
-   TH1F* hcount1[ntel][4];
-   for(int itel=0;itel<ntel;itel++){
-      for(int iazi=0;iazi<4;iazi++){
-         hlist1[itel][iazi]=0;
-         hcount1[itel][iazi]=0;
-         if(!process1) continue;
-         if(iazi==0&&(itel!=4&&itel!=5)) continue;
-         if(iazi==1&&(itel!=3&&itel!=4)) continue;
-         if(iazi==2&&(itel!=2&&itel!=3)) continue;
-         if(iazi==3&&(itel!=0&&itel!=1&&itel!=2)) continue;
-         hlist1[itel][iazi]=new TH2F(Form("Tel%d_Azi%d",itel+1,iazi+1),";Time;Long Axis [degree]",nxbin,xbins,48,-12.,12.);
-         hcount1[itel][iazi]=new TH1F(Form("NAve_Tel%d_Azi%d",itel+1,iazi+1),";Time;Events",nxbin,xbins);
-      }
-   }
-
-   TH2F* hlist2[ntel][6];
-   TH1F* hcount2[ntel][6];
-   for(int itel=0;itel<ntel;itel++){
-      for(int iele=0;iele<6;iele++){
-         hlist2[itel][iele]=0;
-         hcount2[itel][iele]=0;
-         if(!process2) continue;
-         hlist2[itel][iele]=new TH2F(Form("Tel%d_Ele%d",itel+1,iele+1),";Time;Long Axis [degree]",nxbin,xbins,48,-12.,12.);
-         hcount2[itel][iele]=new TH1F(Form("NAve_Tel%d_Ele%d",itel+1,iele+1),";Time;Events",nxbin,xbins);
-      }
-   }
-
    const double pi=3.1415926;
    LHChain chain;
-   chain.AddFromFile(Form("%s/%s",cdir,runlist),first,last);
+   if(strstr(runlist,".root")){
+      chain.Add(runlist);
+   }
+   else{
+      chain.AddFromFile(Form("%s/%s",cdir,runlist),first,last);
+   }
    if(maxevent<=0) maxevent=chain.GetEntries();
    maxevent=TMath::Min(maxevent,(int)chain.GetEntries());
 
@@ -138,11 +125,18 @@ int main(int argc,char* argv[]){
       //if(!pev->PassClean(pev->iTel,3)) continue;
       //if(pev->IsLed(900)) continue;
       //if(fabs(pev->rabbittime*20-990022580)>16000) continue;
-      if(fabs(pev->rabbittime*20-990016000)>1600*10) continue;
+      //if(fabs(pev->rabbittime*20-990016000)>1600*10) continue;
+      //if(abs(pev->rabbittime*20-990016000)>1600*20) continue; //L2
+      //if(abs(pev->rabbittime*20-990845000)>1600*20) continue; //L3
+      int Li=-1;
+      for(int irot=0;irot<nrot;irot++){
+         if(abs(pev->rabbittime*20-rottime[irot])<1600*20) {Li=rotindex[irot]; break;}
+      }
+      if(Li<0) continue;
 
       printf("LaserEvent: entry=%d time=%d\n",ientry,pev->rabbitTime);
 
-      int DoLoad=pr->GetEleAzi(pev->rabbitTime,2,pev->iTel);
+      int DoLoad=pr->GetEleAzi(pev->rabbitTime,Li,pev->iTel);
       if(DoLoad<0) continue;
 
       printf("Rotate Log: time=%d ele=%lf azi=%lf\n",pev->rabbitTime,pr->GetElevation(),pr->GetAzimuth());
