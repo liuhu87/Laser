@@ -1,5 +1,5 @@
-NAME := test
-TARGET :=main_image
+NAME := dir.exe
+TARGET :=main_dir
 
 INCDIR := include
 OBJDIR := obj
@@ -22,9 +22,9 @@ LDFLAGS  := `root-config --libs`
 #LDFLAGS  += -lCore -lMinuit -lNetx -lProof -lProofPlayer -lTMVA -lXMLIO -lMLP -lTreePlayer -lRFIO -lXrdClient -lGpad -lNet -lHist -lHistPainter -lGraf -lMatrix
 
 #LDFLAGS  +=-L. /scratchfs/ybj/lix/WFCTA/lib/lib.so
-#LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/lib.so
+LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/lib.so
 #LDFLAGS  +=-L. /scratchfs/ybj/lix/Laser/lib.so
-LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/lib/lib.so
+#LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/lib/lib.so
 
 $(NAME): $(OBJS) 
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) 

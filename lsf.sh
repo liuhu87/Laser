@@ -7,8 +7,28 @@ nrun=$5
 run_first=$6
 maxentry=$7
 firstentry=$8
+
+userid=`id`
+userid=${userid%%)*}
+userid=${userid##*(}
+user0=${userid:0:1}
+#echo $userid"  "$user0
+#return 
+
+if [ $userid == "hliu" ];then
 dir0="/eos/user/h/hliu"
 cdir="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent"
+logdir="/scratchfs/lhaaso/hliu/jobout"
+else
+dir0="/scratchfs/ybj/$userid/Laser/data"
+cdir="/scratchfs/ybj/$userid/Laser"
+logdir="/scratchfs/ybj/$userid/jobout"
+fi
+#echo $dir0
+#echo $cdir
+#echo $logdir
+#return
+
 #nlsf=20
 if [[ -z $binname ]];then
    read -n1 -p "use <source lsf.sh binname runlist eos_dir itel nrun run_first maxentry firstentry>,  Press any key to continue..."
@@ -32,7 +52,7 @@ fi
 #step=$((nrun/nlsf))
 step=0
 if [ $step -eq 0 ]; then
-   step=$(((nrun-run_first)/100))
+   step=$(((nrun-run_first)/200))
 fi
 if [ $step -eq 0 ]; then
    step=1
@@ -46,6 +66,9 @@ queue="ams1nd"
 jobindex=0
 name0="sh"
 lsf_dir="lsf${itel}"
+#echo ${lsf_dir}
+#return
+
 for (( i=$run_first; i<nrun; i=i+step ))
 do
    runlast=$((i+step-1))
@@ -80,7 +103,11 @@ do
      echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $RUN.$name0
      echo $'\n' >> $RUN.$name0
      echo "#execute the monitor program" >> $RUN.$name0
-     echo "time $cdir/$binname $runlist root://eos01.ihep.ac.cn/$dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+     if [ `echo $dir0 | grep eos | wc -l` -gt 0 ];then
+        echo "time $cdir/$binname $runlist root://eos01.ihep.ac.cn/$dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+     else
+        echo "time $cdir/$binname $runlist $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+     fi
      echo $'\n' >> $RUN.$name0
 
      echo "ls -ltrh" >> $RUN.$name0
@@ -94,16 +121,16 @@ do
      chmod a+x $RUN.$name0
      mv $RUN.$name0 job.sh.${jobindex}
 
-     #njobs=`hep_q -p virtual -u hliu | wc -l`
+     #njobs=`hep_q -p virtual -u ${userid} | wc -l`
      #sleep_time=120
      #while [ "$njobs" -gt 350 ]
      #do
      #   echo "there are $((njobs)) jobs,too many,sleep for $sleep_time seconds at `date`"
      #   sleep $sleep_time
-     #   njobs=`hep_q -p virtual -u hliu | wc -l`
+     #   njobs=`hep_q -p virtual -u ${userid} | wc -l`
      #done
 
-     #hep_sub -p virtual -g lhaaso -dir /eos/user/h/hliu/jobout -o /eos/user/h/hliu/jobout/${RUN}.out -e /eos/user/h/hliu/jobout/${RUN}.err $RUN.$name0
+     #hep_sub -p virtual -g lhaaso -o ${logdir}/${RUN}.out -e ${logdir}/${RUN}.err $RUN.$name0
      #source $RUN.$name0
      #echo "Processing $i : $RUN.$name0 ..."
      #ssh -o 'StrictHostKeyChecking=no' huliu@$hostname sh /afs/cern.ch/work/h/huliu/Documents/charge/lsf/$RUN.$name0 &
@@ -126,6 +153,6 @@ done
 #hadd -f plot.root plot_*.root
 #cd ~/Documents/plot
 
-cd ${lsf_dir}
-hep_sub -p virtual -g lhaaso -dir $dir0/jobout -o $dir0/jobout/%{ProcId}.out -e $dir0/jobout/%{ProcId}.err job.sh.%{ProcId} -n ${jobindex}
-cd ..
+#cd ${lsf_dir}
+#hep_sub -p virtual -g lhaaso -o $logdir/%{ProcId}.out -e $logdir/%{ProcId}.err job.sh.%{ProcId} -n ${jobindex}
+#cd ..

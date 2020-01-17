@@ -81,6 +81,7 @@ int main(int argc,char* argv[]){
    if(maxevent<=0) maxevent=chain.GetEntries();
    maxevent=TMath::Min(maxevent,(int)chain.GetEntries());
 
+   WFCTAEvent::DoDraw=false;
    RotateDB::jdebug=0;
    RotateDB::ntotmin=5;
    RotateDB::nsidemin=2;
@@ -91,11 +92,13 @@ int main(int argc,char* argv[]){
    if(strstr(OutType,"root")) fout=TFile::Open(outname,"RECREATE");
 
    //TH1::SetDefaultSumw2();
+   WFCTAEvent* pev=0;
    int nplot=0;
    if(ievent>=0&&itime>1300000000){
-      WFCTAEvent* pev=chain.GetEvent(itime,ievent);
+      pev=chain.GetEvent(itime,ievent);
       if(pev){
          TCanvas* cc=new TCanvas();
+         //pev->DoFit(0,3);
          pev->Draw(3,"colz",false);
          cc->Print(Form("%s",outname),OutType);
          nplot++;
@@ -105,14 +108,20 @@ int main(int argc,char* argv[]){
    }
    else{
       for(int ientry=firstevent;ientry<maxevent;ientry++){
-         WFCTAEvent* pev=chain.GetEvent(ientry);
-         //if(pev->iEvent!=ievent||pev->rabbitTime!=itime) continue;
+         pev=chain.GetEvent(ientry);
+         if(itime>1300000000){if(pev->rabbitTime!=itime) continue;}
 
          if((ientry%1000)==0) printf("entry=%d of %d iTel=%d event=%d time={%d,%lf}\n",ientry,maxevent,pev->iTel,pev->iEvent,pev->rabbitTime,pev->rabbittime);
+         int index=-1;
 
-         if(pr->LaserIsFine(pev)<=0) continue;
+         //index=pr->GetEleAzi(pev);
+         //if(index<=0) continue;
+         //if((index/10)!=1) continue;
 
-         printf("LaserEvent: entry=%d time=%d\n",ientry,pev->rabbitTime);
+         index=pr->LaserIsFine(pev);
+         if(index<=0) continue;
+
+         printf("LaserEvent: entry=%d time=%d index=%d\n",ientry,pev->rabbitTime,index);
 
          TCanvas* cc=new TCanvas();
          pev->Draw(3,"colz",false);
@@ -120,9 +129,15 @@ int main(int argc,char* argv[]){
          nplot++;
          //pev->DoFit(0,3);
          //printf("iEvent=%d Time=%d+%.10lf kk={%.2lf+-%.2lf} cc={%.2lf+-%.2lf}\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*20*1.0e-9,pev->minimizer->X()[3]/PI*180,pev->minimizer->Errors()[3]/PI*180,pev->minimizer->X()[2]/PI*180,pev->minimizer->Errors()[2]/PI*180);
+         //if(nplot>=1) break;
       }
       TCanvas* cc=new TCanvas();
       cc->Print(Form("%s)",outname),OutType);
+   }
+
+   if(pev&&nplot==1){
+      pev->DoFit(0,3);
+      if(pev->minimizer) printf("iEvent=%d Time=%d+%.10lf kk={%.2lf+-%.2lf} cc={%.2lf+-%.2lf}\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*20*1.0e-9,pev->minimizer->X()[3]/PI*180,pev->minimizer->Errors()[3]/PI*180,pev->minimizer->X()[2]/PI*180,pev->minimizer->Errors()[2]/PI*180);
    }
 
    return 0;
