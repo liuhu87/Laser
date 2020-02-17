@@ -23,7 +23,7 @@ int main(int argc,char* argv[]){
    WFCTAEvent::DoDraw=false;
 
    if(argc<5){
-      printf("Use %s <runlist> <outname> <iEvent> <iTime> <first> <last> <maxevent> <firstevent>\n",argv[0]);
+      printf("Use %s <runlist> <outname> <iEvent> <iTime> <first> <last> <maxevent> <firstevent> <doclean>\n",argv[0]);
       return 0;
    }
 
@@ -69,6 +69,7 @@ int main(int argc,char* argv[]){
    int last=argc>6?atoi(argv[6]):(nline-1);
    int maxevent=argc>7?atoi(argv[7]):-1;
    int firstevent=argc>8?atoi(argv[8]):0;
+   bool doclean=argc>9?(atoi(argv[9])>0):true;
 
    const double pi=3.1415926;
    LHChain chain;
@@ -82,7 +83,7 @@ int main(int argc,char* argv[]){
    maxevent=TMath::Min(maxevent,(int)chain.GetEntries());
 
    WFCTAEvent::DoDraw=false;
-   RotateDB::jdebug=0;
+   RotateDB::jdebug=2;
    RotateDB::ntotmin=5;
    RotateDB::nsidemin=2;
 
@@ -118,10 +119,12 @@ int main(int argc,char* argv[]){
          //if(index<=0) continue;
          //if((index/10)!=1) continue;
 
-         index=pr->LaserIsFine(pev);
-         if(index<=0) continue;
+         if(pr->GetLi((double)pev->rabbittime)<0) continue;
 
-         printf("LaserEvent: entry=%d time=%d index=%d\n",ientry,pev->rabbitTime,index);
+         index=pr->LaserIsFine(pev);
+         if(doclean) {if(index<=0) continue;}
+
+         printf("LaserEvent: entry=%d time={%d+%.8lf} index=%d\n",ientry,pev->rabbitTime,pev->rabbittime*2.0e-8,index);
 
          TCanvas* cc=new TCanvas();
          pev->Draw(3,"colz",false);

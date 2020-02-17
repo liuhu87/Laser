@@ -1,40 +1,43 @@
-NAME := lum.exe
-TARGET :=main_lum
+NAME := lum
 
+SRCDIR := src
 INCDIR := include
+BINDIR := bin
 OBJDIR := obj
 
 ARCH :=`root-config --arch`
 
-HEADERS  := 
-SOURCES  :=  $(TARGET).C
-OBJS     :=  $(OBJDIR)/main.o
+HEADERS  := $(INCDIR)/EveNtuple.h
+#SOURCES  := $(SRCDIR)/EveNtuple.C $(OBJDIR)/dictionary.C
+OBJS     := $(OBJDIR)/EveNtuple.o $(OBJDIR)/dictionary.o $(OBJDIR)/main.o
 
 DEFINES  := -I. -I$(INCDIR) -I$(OBJDIR) -I`root-config --cflags`
-#DEFINES  += -I/scratchfs/ybj/lix/WFCTA/include
 DEFINES  += -I/afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/include
 
-#CXXFLAGS += -D__DST_HE_12__
 CXXFLAGS := -O3 -fPIC -Wno-write-strings
-#CXXFLAGS += -D_THIN_
+#CXXFLAGS += -O3 -fPIC -Wno-write-strings -qopenmp 
 
 LDFLAGS  := `root-config --libs` 
 #LDFLAGS  += -lCore -lMinuit -lNetx -lProof -lProofPlayer -lTMVA -lXMLIO -lMLP -lTreePlayer -lRFIO -lXrdClient -lGpad -lNet -lHist -lHistPainter -lGraf -lMatrix
-
 #LDFLAGS  +=-L. /scratchfs/ybj/lix/WFCTA/lib/lib.so
 #LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/lib.so
 #LDFLAGS  +=-L. /scratchfs/ybj/lix/Laser/lib.so
 LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/lib/lib.so
 
-$(NAME): $(OBJS) 
+$(BINDIR)/$(NAME): $(OBJS) 
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) 
 
-$(OBJDIR)/main.o: $(TARGET).C
+$(OBJDIR)/EveNtuple.o: $(SRCDIR)/EveNtuple_$(NAME).C
+	$(CXX) $(CXXFLAGS) $(DEFINES) -c $^ -o $@
+$(OBJDIR)/main.o: $(SRCDIR)/main.C
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $^ -o $@
 
 $(OBJDIR)/%.o: $(OBJDIR)/%.C
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $^ -o $@
 
+$(OBJDIR)/dictionary.C: $(HEADERS) $(INCDIR)/linkdef.h
+	rootcint -f $@ -c $(DEFINES) -p $^
+
 clean:
-	rm -fv $(OBJDIR)/* $(NAME)
+	rm -fv $(OBJDIR)/* $(BINDIR)/$(NAME)
 

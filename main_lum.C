@@ -89,33 +89,37 @@ int main(int argc,char* argv[]){
 
    // create histogram to save results
    const int nangle1=4;
-   TGraphErrors* glist1[20][nangle1];
-   TH2F* hlist1[20][4];
-   TH1F* hcount1[20][4];
-   for(int itel=0;itel<20;itel++){
-      for(int iazi=0;iazi<nangle1;iazi++){
-         glist1[itel][iazi]=0;
-         hlist1[itel][iazi]=0;
-         hcount1[itel][iazi]=0;
-         if(!process1) continue;
-         if(iazi==0&&(RotateDB::telindex[itel]!=5&&RotateDB::telindex[itel]!=6)) continue;
-         if(iazi==1&&(RotateDB::telindex[itel]!=4&&RotateDB::telindex[itel]!=5)) continue;
-         if(iazi==2&&(RotateDB::telindex[itel]!=3&&RotateDB::telindex[itel]!=4)) continue;
-         if(iazi==3&&(RotateDB::telindex[itel]!=1&&RotateDB::telindex[itel]!=2&&RotateDB::telindex[itel]!=3)) continue;
-         if(UseGraph){
-            glist1[itel][iazi]=new TGraphErrors();
-            glist1[itel][iazi]->SetName(Form("gTel%d_Azi%d",RotateDB::telindex[itel],iazi+1));
-            glist1[itel][iazi]->GetXaxis()->SetTitle("Time");
-            glist1[itel][iazi]->GetXaxis()->SetTimeDisplay(1);
-            glist1[itel][iazi]->GetXaxis()->SetNdivisions(-203);
-            glist1[itel][iazi]->GetXaxis()->SetTimeFormat("%Mm/%Hh/%d/%m/%Y%F1970-01-01 00:00:00s0");
-            glist1[itel][iazi]->GetYaxis()->SetTitle("Total Signal [pe]");
-         }
-         if(UseHist){
-            hlist1[itel][iazi]=new TH2F(Form("Tel%d_Azi%d",RotateDB::telindex[itel],iazi+1),";Time;Long Axis [degree]",nxbin,xbins,48,-12.,12.);
-            hlist1[itel][iazi]->GetXaxis()->SetTimeDisplay(1);
-            hcount1[itel][iazi]=new TH1F(Form("NAve_Tel%d_Azi%d",RotateDB::telindex[itel],iazi+1),";Time;Events",nxbin,xbins);
-            hcount1[itel][iazi]->GetXaxis()->SetTimeDisplay(1);
+   TGraphErrors* glist1[10][20][nangle1];
+   TH2F* hlist1[10][20][4];
+   TH1F* hcount1[10][20][4];
+   for(int irot=0;irot<10;irot++){
+      for(int itel=0;itel<20;itel++){
+         for(int iazi=0;iazi<nangle1;iazi++){
+            glist1[irot][itel][iazi]=0;
+            hlist1[irot][itel][iazi]=0;
+            hcount1[irot][itel][iazi]=0;
+            if(irot>=RotateDB::nrot) continue;
+            if(itel>=RotateDB::ntel) continue;
+            if(!process1) continue;
+            if(iazi==0&&(RotateDB::telindex[itel]!=5&&RotateDB::telindex[itel]!=6)) continue;
+            if(iazi==1&&(RotateDB::telindex[itel]!=4&&RotateDB::telindex[itel]!=5)) continue;
+            if(iazi==2&&(RotateDB::telindex[itel]!=3&&RotateDB::telindex[itel]!=4)) continue;
+            if(iazi==3&&(RotateDB::telindex[itel]!=1&&RotateDB::telindex[itel]!=2&&RotateDB::telindex[itel]!=3)) continue;
+            if(UseGraph){
+               glist1[irot][itel][iazi]=new TGraphErrors();
+               glist1[irot][itel][iazi]->SetName(Form("gRot%d_Tel%d_Azi%d",RotateDB::rotindex[irot],RotateDB::telindex[itel],iazi+1));
+               glist1[irot][itel][iazi]->GetXaxis()->SetTitle("Time");
+               glist1[irot][itel][iazi]->GetXaxis()->SetTimeDisplay(1);
+               glist1[irot][itel][iazi]->GetXaxis()->SetNdivisions(-203);
+               glist1[irot][itel][iazi]->GetXaxis()->SetTimeFormat("%Mm/%Hh/%d/%m/%Y%F1970-01-01 00:00:00s0");
+               glist1[irot][itel][iazi]->GetYaxis()->SetTitle("Total Signal [pe]");
+            }
+            if(UseHist){
+               hlist1[irot][itel][iazi]=new TH2F(Form("Rot%d_Tel%d_Azi%d",RotateDB::rotindex[irot],RotateDB::telindex[itel],iazi+1),";Time;Long Axis [degree]",nxbin,xbins,48,-12.,12.);
+               hlist1[irot][itel][iazi]->GetXaxis()->SetTimeDisplay(1);
+               hcount1[irot][itel][iazi]=new TH1F(Form("NAve_Rot%d_Tel%d_Azi%d",RotateDB::rotindex[irot],RotateDB::telindex[itel],iazi+1),";Time;Events",nxbin,xbins);
+               hcount1[irot][itel][iazi]->GetXaxis()->SetTimeDisplay(1);
+            }
          }
       }
    }
@@ -185,7 +189,7 @@ int main(int argc,char* argv[]){
       index=pr->LaserIsFine(pev);
       if(index<=0) continue;
 
-      int itype=(index/10);
+      int itype=((index%100)/10);
       int iangle=(index%10);
 
       printf("LaserEvent: entry=%d time=%d index=%d\n",ientry,pev->rabbitTime,index);
@@ -195,19 +199,19 @@ int main(int argc,char* argv[]){
       if(!hist) continue;
 
       if(process1&&(itype==1&&iangle<nangle1)){
-         if(glist1[itel][iangle]){
+         if(glist1[irot][itel][iangle]){
             double lum,elum;
             lum=hist->IntegralAndError(0,hist->GetNbinsX()+1,elum);
-            int np=glist1[itel][iangle]->GetN();
-            glist1[itel][iangle]->SetPoint(np,pev->rabbitTime*1.,lum);
-            glist1[itel][iangle]->SetPointError(np,0.,elum);
+            int np=glist1[irot][itel][iangle]->GetN();
+            glist1[irot][itel][iangle]->SetPoint(np,pev->rabbitTime*1.,lum);
+            glist1[irot][itel][iangle]->SetPointError(np,0.,elum);
          }
-         if(hcount1[itel][iangle]&&hlist1[itel][iangle]){
-            int ixbin=hlist1[itel][iangle]->GetXaxis()->FindBin(pev->rabbitTime*1.);
-            hcount1[itel][iangle]->Fill(pev->rabbitTime*1.);
+         if(hcount1[irot][itel][iangle]&&hlist1[irot][itel][iangle]){
+            int ixbin=hlist1[irot][itel][iangle]->GetXaxis()->FindBin(pev->rabbitTime*1.);
+            hcount1[irot][itel][iangle]->Fill(pev->rabbitTime*1.);
             for(int ibin=1;ibin<=hist->GetNbinsX();ibin++){
-               hlist1[itel][iangle]->SetBinContent(ixbin,ibin,hlist1[itel][iangle]->GetBinContent(ixbin,ibin)+hist->GetBinContent(ibin));
-               hlist1[itel][iangle]->SetBinError(ixbin,ibin,sqrt(pow(hlist1[itel][iangle]->GetBinError(ixbin,ibin),2)+pow(hist->GetBinError(ibin),2)));
+               hlist1[irot][itel][iangle]->SetBinContent(ixbin,ibin,hlist1[irot][itel][iangle]->GetBinContent(ixbin,ibin)+hist->GetBinContent(ibin));
+               hlist1[irot][itel][iangle]->SetBinError(ixbin,ibin,sqrt(pow(hlist1[irot][itel][iangle]->GetBinError(ixbin,ibin),2)+pow(hist->GetBinError(ibin),2)));
             }
          }
       }
@@ -235,9 +239,11 @@ int main(int argc,char* argv[]){
    fout->cd();
    for(int ii=0;ii<20;ii++){
       for(int jj=0;jj<nangle1;jj++){
-         if(glist1[ii][jj]) glist1[ii][jj]->Write();
-         if(hcount1[ii][jj]) hcount1[ii][jj]->Write();
-         if(hlist1[ii][jj]) hlist1[ii][jj]->Write();
+         for(int irot=0;irot<RotateDB::nrot;irot++){
+            if(glist1[irot][ii][jj]) glist1[irot][ii][jj]->Write();
+            if(hcount1[irot][ii][jj]) hcount1[irot][ii][jj]->Write();
+            if(hlist1[irot][ii][jj]) hlist1[irot][ii][jj]->Write();
+         }
       }
       for(int jj=0;jj<nangle2;jj++){
          for(int irot=0;irot<RotateDB::nrot;irot++){

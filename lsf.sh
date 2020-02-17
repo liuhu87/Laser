@@ -16,7 +16,7 @@ user0=${userid:0:1}
 #return 
 
 if [ $userid == "hliu" ];then
-dir0="/eos/user/h/hliu"
+dir0="/eos/user/h/hliu/LaserEvent"
 cdir="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent"
 logdir="/scratchfs/lhaaso/hliu/jobout"
 else
@@ -104,7 +104,9 @@ do
      echo $'\n' >> $RUN.$name0
      echo "#execute the monitor program" >> $RUN.$name0
      if [ `echo $dir0 | grep eos | wc -l` -gt 0 ];then
-        echo "time $cdir/$binname $runlist root://eos01.ihep.ac.cn/$dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        #echo "time $cdir/$binname $runlist root://eos01.ihep.ac.cn/$dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        echo "time $cdir/$binname $runlist /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        echo "eos cp /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $dir0/$des_dir/${RUN}.root" >> $RUN.$name0
      else
         echo "time $cdir/$binname $runlist $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
      fi
@@ -153,6 +155,6 @@ done
 #hadd -f plot.root plot_*.root
 #cd ~/Documents/plot
 
-#cd ${lsf_dir}
-#hep_sub -p virtual -g lhaaso -o $logdir/%{ProcId}.out -e $logdir/%{ProcId}.err job.sh.%{ProcId} -n ${jobindex}
-#cd ..
+cd ${lsf_dir}
+hep_sub -p virtual -g lhaaso -o $logdir/%{ProcId}.out -e $logdir/%{ProcId}.err job.sh.%{ProcId} -n ${jobindex}
+cd ..
