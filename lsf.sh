@@ -20,7 +20,7 @@ dir0="/eos/user/h/hliu/LaserEvent"
 cdir="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent"
 logdir="/scratchfs/lhaaso/hliu/jobout"
 else
-dir0="/scratchfs/ybj/$userid/Laser/data"
+dir0="/scratchfs/ybj/$userid/Laser/data_ylq"
 cdir="/scratchfs/ybj/$userid/Laser"
 logdir="/scratchfs/ybj/$userid/jobout"
 fi
@@ -52,7 +52,7 @@ fi
 #step=$((nrun/nlsf))
 step=0
 if [ $step -eq 0 ]; then
-   step=$(((nrun-run_first)/200))
+   step=$(((nrun-run_first)/20))
 fi
 if [ $step -eq 0 ]; then
    step=1
@@ -68,6 +68,7 @@ name0="sh"
 lsf_dir="lsf${itel}"
 #echo ${lsf_dir}
 #return
+rm ${lsf_dir}/*
 
 for (( i=$run_first; i<nrun; i=i+step ))
 do
@@ -108,7 +109,8 @@ do
         echo "time $cdir/$binname $runlist /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
         echo "eos cp /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $dir0/$des_dir/${RUN}.root" >> $RUN.$name0
      else
-        echo "time $cdir/$binname $runlist $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        #echo "time $cdir/$binname $runlist $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        echo "time $cdir/$binname $runlist ${itel} $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
      fi
      echo $'\n' >> $RUN.$name0
 
@@ -136,6 +138,8 @@ do
      #source $RUN.$name0
      #echo "Processing $i : $RUN.$name0 ..."
      #ssh -o 'StrictHostKeyChecking=no' huliu@$hostname sh /afs/cern.ch/work/h/huliu/Documents/charge/lsf/$RUN.$name0 &
+
+     #echo "RUN="$RUN"  jobindex="${jobindex}"  "$i"  "$runlast
 
      cd ..
 

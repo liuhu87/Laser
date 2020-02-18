@@ -42,7 +42,8 @@ int main(int argc, char ** argv){
     const char* runlist = argv[1];
     iTel=atoi(argv[2]);
     outname = argv[3];
-    char cdir[200]="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent";
+    //char cdir[200]="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent";
+    char cdir[200]="/scratchfs/ybj/lix/Laser";
     int first,last;
     int nlineall;
     if(strstr(runlist,".root")){

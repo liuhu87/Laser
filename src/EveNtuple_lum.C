@@ -250,7 +250,7 @@ Bool_t EveNtuple::Process(Long64_t entry)
       if(hcount1[irot][itel][iangle]&&hlist1[irot][itel][iangle]){
          int ixbin=hlist1[irot][itel][iangle]->GetXaxis()->FindBin(pev->rabbitTime*1.);
          hcount1[irot][itel][iangle]->Fill(pev->rabbitTime*1.);
-printf("Fill type=1 rabbitTime=%ld\n",pev->rabbitTime);
+         //printf("Fill type=1 rabbitTime=%ld\n",pev->rabbitTime);
          for(int ibin=1;ibin<=hist->GetNbinsX();ibin++){
             hlist1[irot][itel][iangle]->SetBinContent(ixbin,ibin,hlist1[irot][itel][iangle]->GetBinContent(ixbin,ibin)+hist->GetBinContent(ibin));
             hlist1[irot][itel][iangle]->SetBinError(ixbin,ibin,sqrt(pow(hlist1[irot][itel][iangle]->GetBinError(ixbin,ibin),2)+pow(hist->GetBinError(ibin),2)));

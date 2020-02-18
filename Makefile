@@ -11,8 +11,8 @@ SOURCES  :=  $(TARGET).C
 OBJS     :=  $(OBJDIR)/main.o
 
 DEFINES  := -I. -I$(INCDIR) -I$(OBJDIR) -I`root-config --cflags`
-#DEFINES  += -I/scratchfs/ybj/lix/WFCTA/include
-DEFINES  += -I/afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/include
+DEFINES  += -I/scratchfs/ybj/lix/WFCTA/include
+#DEFINES  += -I/afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/include
 
 #CXXFLAGS += -D__DST_HE_12__
 CXXFLAGS := -O3 -fPIC -Wno-write-strings
@@ -23,8 +23,8 @@ LDFLAGS  := `root-config --libs`
 
 #LDFLAGS  +=-L. /scratchfs/ybj/lix/WFCTA/lib/lib.so
 #LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent/lib.so
-#LDFLAGS  +=-L. /scratchfs/ybj/lix/Laser/lib.so
-LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/lib/lib.so
+LDFLAGS  +=-L. /scratchfs/ybj/lix/Laser/lib.so
+#LDFLAGS  +=-L. /afs/ihep.ac.cn/users/h/hliu/Documents/LHAASO/WFCTA/lib/lib.so
 
 $(NAME): $(OBJS) 
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) 
