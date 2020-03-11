@@ -6,6 +6,6 @@ for idate in `ls $dir`
 do
    for ifile in `ls $dir/$idate | grep WFCTA$itel`
    do
-      echo "root://eos01.ihep.ac.cn/"$dir/$idate/$ifile >> ntuple_tel$itel.txt
+      echo "root://eos01.ihep.ac.cn/"$dir/$idate/$ifile >> ntuple2_tel$itel.txt
    done
 done

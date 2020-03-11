@@ -37,8 +37,12 @@ int main(int argc,char* argv[]){
 
    char* runlist=argv[1];
    char* outname=argv[2];
+   #ifdef _hliu
    char cdir[200]="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent";
-   //char cdir[200]="/scratchfs/ybj/lix/Laser";
+   #endif
+   #ifdef _lix
+   char cdir[200]="/scratchfs/ybj/lix/Laser";
+   #endif
    int first,last;
    int maxevent=argc>5?atoi(argv[5]):-1;
    int firstevent=argc>6?atoi(argv[6]):0;

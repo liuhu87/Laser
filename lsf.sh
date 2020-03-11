@@ -16,7 +16,8 @@ user0=${userid:0:1}
 #return 
 
 if [ $userid == "hliu" ];then
-dir0="/eos/user/h/hliu/LaserEvent"
+#dir0="/eos/user/h/hliu/LaserEvent"
+dir0="/scratchfs/lhaaso/hliu/buffer2"
 cdir="/afs/ihep.ac.cn/users/h/hliu/Documents/Analysis/LaserEvent"
 logdir="/scratchfs/lhaaso/hliu/jobout"
 else
@@ -52,7 +53,7 @@ fi
 #step=$((nrun/nlsf))
 step=0
 if [ $step -eq 0 ]; then
-   step=$(((nrun-run_first)/20))
+   step=$(((nrun-run_first)/50))
 fi
 if [ $step -eq 0 ]; then
    step=1
@@ -65,7 +66,7 @@ fi
 queue="ams1nd"
 jobindex=0
 name0="sh"
-lsf_dir="lsf${itel}"
+lsf_dir="lsf"${itel}
 #echo ${lsf_dir}
 #return
 rm ${lsf_dir}/*
@@ -84,6 +85,7 @@ do
 
      if [[ -f $dir0/$des_dir/${RUN}.root ]];then
         cd ..
+        jobindex=$((jobindex+1))
         continue
      fi
 
@@ -106,11 +108,12 @@ do
      echo "#execute the monitor program" >> $RUN.$name0
      if [ `echo $dir0 | grep eos | wc -l` -gt 0 ];then
         #echo "time $cdir/$binname $runlist root://eos01.ihep.ac.cn/$dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
-        echo "time $cdir/$binname $runlist /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
-        echo "eos cp /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $dir0/$des_dir/${RUN}.root" >> $RUN.$name0
+        #echo "time $cdir/$binname $runlist /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        echo "time $cdir/$binname $runlist ${itel} /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        #echo "eos cp /scratchfs/lhaaso/hliu/buffer/tel${itel}/${RUN}.root $dir0/$des_dir/${RUN}.root" >> $RUN.$name0
      else
-        #echo "time $cdir/$binname $runlist $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
-        echo "time $cdir/$binname $runlist ${itel} $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        echo "time $cdir/$binname $runlist $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
+        #echo "time $cdir/$binname $runlist ${itel} $dir0/$des_dir/${RUN}.root $i $runlast $maxentry $firstentry" >> $RUN.$name0
      fi
      echo $'\n' >> $RUN.$name0
 
