@@ -1,5 +1,5 @@
-NAME := temp.exe
-TARGET :=main_temp
+NAME := lum.exe
+TARGET :=main_lum
 
 INCDIR := include
 OBJDIR := obj
