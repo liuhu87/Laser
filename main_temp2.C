@@ -163,41 +163,37 @@ int main(int argc,char* argv[]){
    fcor->Close();
    gdir->cd();
 
-   int IsHigh=-1;
-   int IsSat=-1;
-   // create histogram to save results
-   char label[2][10]={"low","high"};
-   char label2[2][10]={"sat","unsat"};
-   TH2F* htemp_sgl[2][2][1024];
-   TH2F* htemp_ave[2][2][1024];
-   TH2F*  htemp_corr_sgl[2][2][1024];
-   TH2F* htemp_corr2_sgl[2][2][1024];
-   TH2F* hsum_temp_ave[2][2];
-   for(int ishigh=0;ishigh<2;ishigh++){
-      for(int issat=0;issat<2;issat++){
-         for(int ii=0;ii<1024;ii++){
-                  htemp_sgl[ishigh][issat][ii]=0;
-                  htemp_ave[ishigh][issat][ii]=0;
-             htemp_corr_sgl[ishigh][issat][ii]=0;
-            htemp_corr2_sgl[ishigh][issat][ii]=0;
+   int ITemp=0;
+   const int nangle1=4;
+   TH2F* ntotpe1[10][20][nangle1];
+   for(int irot=0;irot<10;irot++){
+      for(int itel=0;itel<20;itel++){
+         for(int iazi=0;iazi<nangle1;iazi++){
+            ntotpe1[irot][itel][iazi]=0;
+            if(irot>=RotateDB::nrot) continue;
+            if(itel>=RotateDB::ntel) continue;
+            if(iazi==0&&(RotateDB::telindex[itel]!=5&&RotateDB::telindex[itel]!=6)) continue;
+            if(iazi==1&&(RotateDB::telindex[itel]!=4&&RotateDB::telindex[itel]!=5)) continue;
+            if(iazi==2&&(RotateDB::telindex[itel]!=3&&RotateDB::telindex[itel]!=4)) continue;
+            if(iazi==3&&(RotateDB::telindex[itel]!=1&&RotateDB::telindex[itel]!=2&&RotateDB::telindex[itel]!=3)) continue;
+            double Eref=RotateDB::GetHead()->GetEref(RotateDB::rotindex[irot],RotateDB::telindex[itel],1,iazi);
+            double Erange[2]={Eref*0.7,Eref*1.3};
+            ntotpe1[irot][itel][iazi]=new TH2F(Form("Rot%d_Tel%d_totpe_temp_Azi%d",RotateDB::rotindex[irot],RotateDB::telindex[itel],iazi),";Temperature [^{o}C];Total Npe [pe]",120,-30.,30,120,Erange[0],Erange[1]);
          }
-         hsum_temp_ave[ishigh][issat]=0;
       }
    }
-
-   for(int ishigh=0;ishigh<2;ishigh++){
-      if(IsHigh>=0&&IsHigh!=ishigh) continue;
-      int npebin=ishigh?400:900;
-      double maxpe=ishigh?7500:33000;
-      for(int issat=0;issat<2;issat++){
-         if(IsSat>=0&&IsSat!=issat) continue;
-         for(int ii=0;ii<1024;ii++){
-                  htemp_sgl[ishigh][issat][ii] =new TH2F(Form("npe_temp_sgl_sipm%d_%s_%s",ii,label[ishigh],label2[issat]),";Temperature [^{o}C];Npe",100,-20,30,npebin,0,maxpe);
-                  htemp_ave[ishigh][issat][ii] =new TH2F(Form("npe_temp_ave_sipm%d_%s_%s",ii,label[ishigh],label2[issat]),";Temperature [^{o}C];Npe",100,-20,30,npebin,0,maxpe);
-             htemp_corr_sgl[ishigh][issat][ii]=new TH2F(Form("npe_corr1_sgl_sipm%d_%s_%s",ii,label[ishigh],label2[issat]),";Temperature [^{o}C];Npe",100,-20,30,npebin,0,maxpe);
-            htemp_corr2_sgl[ishigh][issat][ii]=new TH2F(Form("npe_corr2_sgl_sipm%d_%s_%s",ii,label[ishigh],label2[issat]),";Temperature [^{o}C];Npe",100,-20,30,npebin,0,maxpe);
+   const int nangle2=6;
+   TH2F* ntotpe2[10][20][nangle2];
+   for(int irot=0;irot<10;irot++){
+      for(int itel=0;itel<20;itel++){
+         for(int iele=0;iele<nangle2;iele++){
+            ntotpe2[irot][itel][iele]=0;
+            if(irot>=RotateDB::nrot) continue;
+            if(itel>=RotateDB::ntel) continue;
+            double Eref=RotateDB::GetHead()->GetEref(RotateDB::rotindex[irot],RotateDB::telindex[itel],2,iele);
+            double Erange[2]={Eref*0.7,Eref*1.3};
+            ntotpe2[irot][itel][iele]=new TH2F(Form("Rot%d_Tel%d_totpe_temp_Ele%d",RotateDB::rotindex[irot],RotateDB::telindex[itel],iele),";Temperature [^{o}C];Total Npe [pe]",120,-30.,30,120,Erange[0],Erange[1]);
          }
-         hsum_temp_ave[ishigh][issat]=new TH2F(Form("sum_npe_temp_ave_%s_%s",label[ishigh],label2[issat]),";Temperature [^{o}C];Npe",100,-20,30,500,1.0e3,1.0e6);
       }
    }
 
@@ -242,7 +238,7 @@ int main(int argc,char* argv[]){
       index=pr->LaserIsFine(pev);
       //printf("LaserEvent1: entry=%d time=%d event=%d  index=%d\n",ientry,pev->rabbitTime,pev->iEvent,index);
       if(index<=0) continue;
-      if(index!=221) continue;
+      //if(index!=221) continue;
 
       int itype=((index%100)/10);
       int iangle=(index%10);
@@ -262,75 +258,16 @@ int main(int argc,char* argv[]){
       }
       if(findentry>=Tmaxentry) continue;
 
-      double sipmpe[2][1024];
-      bool sated[2][1024];
-      for(int ii=0;ii<1024;ii++){
-         sipmpe[0][ii]=0; sipmpe[1][ii]=0;
-         sated[0][ii]=false; sated[1][ii]=false;
-      }
-      for(int ii=0;ii<size;ii++){
-         sipmpe[0][pev->iSiPM.at(ii)]=pev->GetContent(ii,pev->iTel,4,true,true);
-         sipmpe[1][pev->iSiPM.at(ii)]=pev->GetContent(ii,pev->iTel,3,true,true);
-         sated[0][pev->iSiPM.at(ii)]=pev->GetContent(ii,pev->iTel,10,true,true)>0;
-         sated[1][pev->iSiPM.at(ii)]=pev->GetContent(ii,pev->iTel,9,true,true)>0;
-      }
+      int ncontent;
+      double error;
+      double npe=pev->GetTotalPe(error,ncontent,pev->iTel,12,true);
 
-      double temperature[1024];
-      double temp_ave=0;
-      int ntemp=0;
-      TDirectory* gdir=gDirectory;
-      char filename[200]="";
-      bool exist=CommonTools::GetStatusFile(filename,(char*)pev->GetFileName());
-      StatusDB::GetHead()->GetPreTemp(pev->iTel,pev->rabbitTime,0,exist?filename:0);
-      for(int ii=0;ii<1024;ii++){
-         temperature[ii]=StatusDB::GetHead()->PreTemp[ii];
-         if(temperature[ii]<-100) continue;
-         temp_ave+=temperature[ii];
-         ntemp++;
-      }
-      if(ntemp>0) temp_ave/=ntemp;
-      else temp_ave=-1000;
-      if(gdir) gdir->cd();
+      double temperature[5];
+      bool res=RotateDB::GetHead()->GetEnv(pev->rabbitTime,RotateDB::rotindex[irot],temperature);
+      if(!res) continue;
 
-      double npe_sum[2][2]={{0,0},{0,0}};
-      for(int ii=0;ii<size;ii++){
-         bool isclean=pev->CleanImage(ii,pev->iTel,true);
-         //if(!isclean) continue;
-         int sipm0=pev->iSiPM.at(ii);
-         if(sipm0<0||sipm0>1023) continue;
-         for(int ishigh=0;ishigh<2;ishigh++){
-            if(IsHigh>=0&&(IsHigh!=ishigh)) continue;
-            for(int issat=0;issat<2;issat++){
-               if(IsSat>=0&&(IsSat!=issat)) continue;
-               //if(issat&&(sated[ishigh][sipm0])) continue;
-               if(issat==0){if(!sated[ishigh][sipm0]) continue;}
-               if(issat==1){if(sated[ishigh][sipm0]) continue;}
-               if(isclean) npe_sum[ishigh][issat]+=sipmpe[ishigh][sipm0];
-               if(htemp_sgl[ishigh][issat][sipm0]) htemp_sgl[ishigh][issat][sipm0]->Fill(temperature[sipm0],sipmpe[ishigh][sipm0]);
-               if(htemp_ave[ishigh][issat][sipm0]) htemp_ave[ishigh][issat][sipm0]->Fill(temp_ave,sipmpe[ishigh][sipm0]);
-
-               //CalibWFCTA::UseSiPMCalibVer=1;
-               //double npe_cor1=(temperature[sipm0]<-100)?sipmpe[ishigh][sipm0]:CalibWFCTA::GetHead()->DoCalibSiPM(pev->iTel,sipm0,sipmpe[ishigh][sipm0],temperature[sipm0],0x7);
-               //if(htemp_corr_sgl[ishigh][issat][sipm0]) htemp_corr_sgl[ishigh][issat][sipm0]->Fill(temperature[sipm0],npe_cor1);
-               //CalibWFCTA::UseSiPMCalibVer=2;
-               //double npe_cor2=(temp_ave<-100)?sipmpe[ishigh][sipm0]:CalibWFCTA::GetHead()->DoCalibSiPM(pev->iTel,sipm0,sipmpe[ishigh][sipm0],temp_ave,0x7);
-               //if(htemp_corr2_sgl[ishigh][issat][sipm0]) htemp_corr2_sgl[ishigh][issat][sipm0]->Fill(temp_ave,npe_cor2);
-
-               double npe_cor1=(findentry<0)?-1:(sipmpe[ishigh][sipm0]*Ntable_Factor[findentry][sipm0]);
-               if(htemp_corr_sgl[ishigh][issat][sipm0]) htemp_corr_sgl[ishigh][issat][sipm0]->Fill(temperature[sipm0],npe_cor1);
-               //double npe_cor2=(findentry<0)?-1:(sipmpe[ishigh][sipm0]*NTemp_SiPM_Factor[findentry][sipm0]);
-               double npe_cor2=(findentry<0)?-1:(sipmpe[ishigh][sipm0]*NBGM_Correct_Factor[findentry][sipm0]);
-               if(htemp_corr2_sgl[ishigh][issat][sipm0]) htemp_corr2_sgl[ishigh][issat][sipm0]->Fill(temperature[sipm0],npe_cor2);
-            }
-         }
-      }
-      for(int ishigh=0;ishigh<2;ishigh++){
-         if(IsHigh>=0&&(IsHigh!=ishigh)) continue;
-         for(int issat=0;issat<2;issat++){
-            if(IsSat>=0&&(IsSat!=issat)) continue;
-            hsum_temp_ave[ishigh][issat]->Fill(temp_ave,npe_sum[ishigh][issat]);
-         }
-      }
+      if(itype==1&&ntotpe1[irot][itel][iangle]) ntotpe1[irot][itel][iangle]->Fill(temperature[ITemp],npe);
+      if(itype==2&&ntotpe2[irot][itel][iangle]) ntotpe2[irot][itel][iangle]->Fill(temperature[ITemp],npe);
    }
 
    delete NTime;
@@ -345,15 +282,18 @@ int main(int argc,char* argv[]){
    delete NTemp_LEDDR;
 
    fout->cd();
-   for(int ishigh=0;ishigh<2;ishigh++){
-      for(int issat=0;issat<2;issat++){
-         for(int ii=0;ii<1024;ii++){
-            if(htemp_sgl[ishigh][issat][ii])             htemp_sgl[ishigh][issat][ii]->Write();
-            if(htemp_ave[ishigh][issat][ii])             htemp_ave[ishigh][issat][ii]->Write();
-            if(htemp_corr_sgl[ishigh][issat][ii])   htemp_corr_sgl[ishigh][issat][ii]->Write();
-            if(htemp_corr2_sgl[ishigh][issat][ii]) htemp_corr2_sgl[ishigh][issat][ii]->Write();
+   for(int irot=0;irot<10;irot++){
+      for(int itel=0;itel<20;itel++){
+         for(int iazi=0;iazi<nangle1;iazi++){
+            if(ntotpe1[irot][itel][iazi]) ntotpe1[irot][itel][iazi]->Write();
          }
-         if(hsum_temp_ave[ishigh][issat]) hsum_temp_ave[ishigh][issat]->Write();
+      }
+   }
+   for(int irot=0;irot<10;irot++){
+      for(int itel=0;itel<20;itel++){
+         for(int iele=0;iele<nangle2;iele++){
+            if(ntotpe2[irot][itel][iele]) ntotpe2[irot][itel][iele]->Write();
+         }
       }
    }
    fout->Close();

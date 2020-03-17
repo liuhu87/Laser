@@ -24,7 +24,7 @@ int main(int argc,char* argv[]){
    WFCTAEvent::DoDraw=false;
    CalibWFCTA::UseSiPMCalibVer=1;
    WFCTAEvent::CalibType=0x7;
-   WFCTAEvent::jdebug=10;
+   WFCTAEvent::jdebug=0;
 
    if(argc<5){
       printf("Use %s <runlist> <outname> <iEvent> <iTime> <first> <last> <maxevent> <firstevent> <type> <doclean>\n",argv[0]);
@@ -105,7 +105,7 @@ int main(int argc,char* argv[]){
    //TH1::SetDefaultSumw2();
    WFCTAEvent* pev=0;
    int nplot=0;
-   bool cleanimage=true;
+   bool cleanimage=false;
    if(ievent>=0&&itime>1300000000){
       pev=chain.GetEvent(itime,ievent);
       if(pev){
@@ -119,30 +119,32 @@ int main(int argc,char* argv[]){
       }
    }
    else{
-      int piEvent=1000;
+      int piEvent=1000000;
       int nfile=0;
       for(int ientry=firstevent;ientry<maxevent;ientry++){
          pev=chain.GetEvent(ientry);
          if(pev->iEvent<piEvent){
             printf("Processing file %d of %d name=%s...\n",nfile+first,last+1,pev->GetFileName());
+            printf("iEvent=%d Time=%d+%lf\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*2.0e-8);
             nfile++;
          }
          piEvent=pev->iEvent;
 
          if(itime>1300000000){if(pev->rabbitTime!=itime) continue;}
 
-         if((ientry%1000)==0) printf("entry=%d of %d iTel=%d event=%d time={%d,%lf}\n",ientry,maxevent,pev->iTel,pev->iEvent,pev->rabbitTime,pev->rabbittime);
+         if((ientry%1000)==0) printf("entry=%d of %d iTel=%d event=%d time={%d,%lf}\n",ientry,maxevent,pev->iTel,pev->iEvent,pev->rabbitTime,pev->rabbittime*2.0e-8);
          int index=-1;
 
          //index=pr->GetEleAzi(pev);
          //if(index<=0) continue;
          //if((index/10)!=1) continue;
 
-         if(pr->GetLi((double)pev->rabbittime)<0) continue;
+         //if(pr->GetLi((double)pev->rabbittime)<0) continue;
+         //printf("LaserEvent0: entry=%d event=%d time={%d+%.8lf} index=%d\n",ientry,pev->iEvent,pev->rabbitTime,pev->rabbittime*2.0e-8,index);
 
          index=pr->LaserIsFine(pev);
          if(doclean) {if(index<=0) continue;}
-         if(index!=225) continue;
+         if(index!=221) continue;
 
          printf("LaserEvent: entry=%d event=%d time={%d+%.8lf} index=%d\n",ientry,pev->iEvent,pev->rabbitTime,pev->rabbittime*2.0e-8,index);
 
@@ -154,7 +156,7 @@ int main(int argc,char* argv[]){
          //printf("Laser: sipm=%d cont={%.2lf,%.2lf}\n",sipm0,pev->GetContent(sipm0,pev->iTel,3,false,true),pev->GetContent(sipm0,pev->iTel,12,false,true));
          //pev->DoFit(0,3);
          //printf("iEvent=%d Time=%d+%.10lf kk={%.2lf+-%.2lf} cc={%.2lf+-%.2lf}\n",pev->iEvent,pev->rabbitTime,pev->rabbittime*20*1.0e-9,pev->minimizer->X()[3]/PI*180,pev->minimizer->Errors()[3]/PI*180,pev->minimizer->X()[2]/PI*180,pev->minimizer->Errors()[2]/PI*180);
-         if(nplot>=1) break;
+         //if(nplot>=1) break;
       }
       TCanvas* cc=new TCanvas();
       cc->Print(Form("%s)",outname),OutType);
